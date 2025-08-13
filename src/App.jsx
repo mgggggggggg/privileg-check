@@ -81,33 +81,50 @@ export default function App() {
     }
   }, []);
 
-// Demo-Datenset für Präsentation: 50 Teilnahmen, Score 15–23 + 1–2 Ausreißer bei 10
+// Demo-Datenset: 50 Teilnahmen, 2–3 Fragen immer Ja
 useEffect(() => {
   const demo = [];
 
-  // 48 „normale“ Teilnehmer mit Score zwischen 15 und 23
+  // Zufällig 2 oder 3 Fragen auswählen, die immer mit Ja beantwortet werden
+  const alwaysYesCount = Math.random() < 0.5 ? 2 : 3;
+  const alwaysYesIndexes = [];
+  while (alwaysYesIndexes.length < alwaysYesCount) {
+    const idx = Math.floor(Math.random() * 25);
+    if (!alwaysYesIndexes.includes(idx)) {
+      alwaysYesIndexes.push(idx);
+    }
+  }
+
+  // Hilfsfunktion, um Antworten-Array mit Score zu erstellen
+  function makeAnswers(score) {
+    const answers = Array.from({ length: 25 }, (_, idx) => idx < score);
+    // Zufällig durchmischen
+    for (let j = answers.length - 1; j > 0; j--) {
+      const k = Math.floor(Math.random() * (j + 1));
+      [answers[j], answers[k]] = [answers[k], answers[j]];
+    }
+    // Immer-Yes-Fragen setzen
+    alwaysYesIndexes.forEach(index => {
+      answers[index] = true;
+    });
+    return answers;
+  }
+
+  // 48 normale Teilnehmer mit Score 15–23
   for (let i = 0; i < 48; i++) {
     const score = Math.floor(15 + Math.random() * 9); // 15..23
-    const answers = Array.from({ length: 25 }, (_, idx) => idx < score);
-    // Antworten mischen, damit die "Nein"-Antworten nicht nur am Ende stehen
-    for (let j = answers.length - 1; j > 0; j--) {
-      const k = Math.floor(Math.random() * (j + 1));
-      [answers[j], answers[k]] = [answers[k], answers[j]];
-    }
-    demo.push({ id: crypto.randomUUID(), score, answers });
+    const answers = makeAnswers(score);
+    demo.push({ id: crypto.randomUUID(), score: answers.filter(Boolean).length, answers });
   }
 
-  // 2 Ausreißer mit Score um 10
+  // 2 Ausreißer mit Score 10
   for (let i = 0; i < 2; i++) {
     const score = 10;
-    const answers = Array.from({ length: 25 }, (_, idx) => idx < score);
-    for (let j = answers.length - 1; j > 0; j--) {
-      const k = Math.floor(Math.random() * (j + 1));
-      [answers[j], answers[k]] = [answers[k], answers[j]];
-    }
-    demo.push({ id: crypto.randomUUID(), score, answers });
+    const answers = makeAnswers(score);
+    demo.push({ id: crypto.randomUUID(), score: answers.filter(Boolean).length, answers });
   }
 
+  // Speichern & State setzen
   localStorage.setItem(DEMO_KEY, JSON.stringify(demo));
   localStorage.removeItem(RATE_KEY);
   setSubmissions(demo);
@@ -117,6 +134,7 @@ useEffect(() => {
   }
   setJustSubmittedId(localStorage.getItem("pc_person_id"));
 }, []);
+
 
   // Cross‑Tab Sync
   useEffect(() => {
