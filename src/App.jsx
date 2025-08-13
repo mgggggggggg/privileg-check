@@ -138,7 +138,7 @@ export default function App() {
   return (
     <div className="min-h-screen text-stone-800 bg-stone-50">
       <header className="max-w-4xl mx-auto px-4 py-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Privileg‑Check</h1>
+        <h1 className="text-2xl font-bold">Privileg‑Check (Kamine 13.8.2025)</h1>
         <LangSwitch lang={lang} setLang={setLang} />
       </header>
 
