@@ -81,23 +81,37 @@ export default function App() {
     }
   }, []);
 
- // Demo-Datenset für die Präsentation: überwiegend viele Privilegien
+// Demo-Datenset für Präsentation: 50 Teilnahmen, Score 15–23 + 1–2 Ausreißer bei 10
 useEffect(() => {
-  // 25 Beispielpersonen, ca. 82–94% „Ja“-Antworten (rechtslastige Verteilung)
   const demo = [];
-  for (let i = 0; i < 25; i++) {
-    const yesRate = 0.82 + Math.random() * 0.12; // 0.82 .. 0.94
-    const answers = Array.from({ length: 25 }, () => Math.random() < yesRate);
-    const score = answers.filter(Boolean).length;
+
+  // 48 „normale“ Teilnehmer mit Score zwischen 15 und 23
+  for (let i = 0; i < 48; i++) {
+    const score = Math.floor(15 + Math.random() * 9); // 15..23
+    const answers = Array.from({ length: 25 }, (_, idx) => idx < score);
+    // Antworten mischen, damit die "Nein"-Antworten nicht nur am Ende stehen
+    for (let j = answers.length - 1; j > 0; j--) {
+      const k = Math.floor(Math.random() * (j + 1));
+      [answers[j], answers[k]] = [answers[k], answers[j]];
+    }
     demo.push({ id: crypto.randomUUID(), score, answers });
   }
 
-  // speichern & in den State laden
+  // 2 Ausreißer mit Score um 10
+  for (let i = 0; i < 2; i++) {
+    const score = 10;
+    const answers = Array.from({ length: 25 }, (_, idx) => idx < score);
+    for (let j = answers.length - 1; j > 0; j--) {
+      const k = Math.floor(Math.random() * (j + 1));
+      [answers[j], answers[k]] = [answers[k], answers[j]];
+    }
+    demo.push({ id: crypto.randomUUID(), score, answers });
+  }
+
   localStorage.setItem(DEMO_KEY, JSON.stringify(demo));
-  localStorage.removeItem(RATE_KEY); // Rate-Limit-Log leeren
+  localStorage.removeItem(RATE_KEY);
   setSubmissions(demo);
 
-  // stabile Personen-ID, falls noch nicht vorhanden (für deinen eigenen Punkt)
   if (!localStorage.getItem("pc_person_id")) {
     localStorage.setItem("pc_person_id", crypto.randomUUID());
   }
