@@ -81,15 +81,28 @@ export default function App() {
     }
   }, []);
 
-  // Veröffentlichung: Teilnahmen auf 0 zurücksetzen beim ersten Laden
-  useEffect(() => {
-    try {
-      localStorage.removeItem(DEMO_KEY);
-      localStorage.removeItem(RATE_KEY);
-    } catch {}
-    setSubmissions([]);
-    setJustSubmittedId(localStorage.getItem("pc_person_id"));
-  }, []);
+ // Demo-Datenset für die Präsentation: überwiegend viele Privilegien
+useEffect(() => {
+  // 25 Beispielpersonen, ca. 82–94% „Ja“-Antworten (rechtslastige Verteilung)
+  const demo = [];
+  for (let i = 0; i < 25; i++) {
+    const yesRate = 0.82 + Math.random() * 0.12; // 0.82 .. 0.94
+    const answers = Array.from({ length: 25 }, () => Math.random() < yesRate);
+    const score = answers.filter(Boolean).length;
+    demo.push({ id: crypto.randomUUID(), score, answers });
+  }
+
+  // speichern & in den State laden
+  localStorage.setItem(DEMO_KEY, JSON.stringify(demo));
+  localStorage.removeItem(RATE_KEY); // Rate-Limit-Log leeren
+  setSubmissions(demo);
+
+  // stabile Personen-ID, falls noch nicht vorhanden (für deinen eigenen Punkt)
+  if (!localStorage.getItem("pc_person_id")) {
+    localStorage.setItem("pc_person_id", crypto.randomUUID());
+  }
+  setJustSubmittedId(localStorage.getItem("pc_person_id"));
+}, []);
 
   // Cross‑Tab Sync
   useEffect(() => {
